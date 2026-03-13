@@ -1,17 +1,14 @@
-// Konfigurace Supabase
 const SUPABASE_URL = "https://oesygfqnrykzkmxuggxr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lc3lnZnFucnlremtteHVnZ3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTI4NDMsImV4cCI6MjA4ODk2ODg0M30.VCzB_jf3aeP89wQhwIXxROxF8cVzlNWtNPO8nI0im6M";
 
-// Inicializace klienta - používáme window.supabase, protože knihovnu načítáš v HTML přes CDN
 const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let isLoginMode = true;
 
-// Hlavní funkce pro přepínání (teď se jmenuje handleToggle, aby seděla na tvoje volání)
+// Funkce pro přepínání režimu (Login/Registrace)
 function handleToggle() {
     isLoginMode = !isLoginMode;
-
-    // Musíme najít prvky podle ID, která máš v HTML
+    
     const title = document.getElementById('main-title');
     const subtitle = document.getElementById('main-subtitle');
     const btn = document.getElementById('submit-btn');
@@ -33,103 +30,78 @@ function handleToggle() {
     }
 }
 
-// Propojíme kliknutí na odkaz s funkcí handleToggle
-// Toto zajistí, že i když v HTML zapomeneš na onclick, bude to fungovat
-const link = document.getElementById('switch-link');
-if (link) {
-    link.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleToggle();
-    });
-}
+// Připojení kliknutí na "Zaregistruj se"
+document.getElementById('switch-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    handleToggle();
+});
 
-// Funkce pro registraci a přihlášení přes Supabase
+// Auth proces
 document.getElementById('auth-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const btn = document.getElementById('submit-btn');
 
-    const originalBtnText = btn.innerText;
-    btn.innerText = "Pracuji...";
     btn.disabled = true;
+    btn.innerText = "Pracuji...";
 
     if (isLoginMode) {
-        // PŘIHLÁŠENÍ
-        const { data, error } = await _sb.auth.signInWithPassword({
-            email: email,
-            password: password,
-        });
-
+        const { data, error } = await _sb.auth.signInWithPassword({ email, password });
         if (error) {
-            alert("Chyba při přihlášení: " + error.message);
-            btn.innerText = originalBtnText;
+            alert("Chyba: " + error.message);
             btn.disabled = false;
+            btn.innerText = "Přihlásit se";
         } else {
-            alert("Úspěšně přihlášeno!");
-            showApp(); // Tato funkce přepne na deník cviků
+            showApp();
         }
     } else {
-        // REGISTRACE
-        const { data, error } = await _sb.auth.signUp({
-            email: email,
-            password: password,
-        });
-
+        const { error } = await _sb.auth.signUp({ email, password });
         if (error) {
-            alert("Chyba při registraci: " + error.message);
-            btn.innerText = originalBtnText;
+            alert("Chyba: " + error.message);
             btn.disabled = false;
+            btn.innerText = "Vytvořit účet";
         } else {
             alert("Registrace úspěšná! Můžeš se přihlásit.");
-            handleToggle(); // Přepne zpět na login
-            btn.innerText = "Přihlásit se";
+            handleToggle();
             btn.disabled = false;
         }
     }
 });
 
-// Funkce pro přepnutí na aplikaci (schová login, ukáže deník)
 function showApp() {
     document.getElementById('auth-section').classList.add('hidden');
     document.getElementById('app-section').classList.remove('hidden');
     loadData();
 }
 
-// Načtení cviků z tabulky
 async function loadData() {
-    const { data, error } = await _sb.from('workouts').select('*').order('created_at', {ascending: false});
+    const { data } = await _sb.from('workouts').select('*').order('created_at', {ascending: false});
     const list = document.getElementById('list');
-    list.innerHTML = '<strong>Historie tréninků:</strong>';
-    
+    list.innerHTML = '<strong>Historie:</strong>';
     if (data) {
         data.forEach(i => {
-            list.innerHTML += `<div class="workout-item"><b>${i.exercise}</b> <span>${i.weight}kg x ${i.reps}</span></div>`;
+            list.innerHTML += `<div class="workout-item"><span>${i.exercise}</span> <b>${i.weight}kg x ${i.reps}</b></div>`;
         });
     }
 }
 
-// Uložení nového cviku
-const workoutForm = document.getElementById('workout-form');
-if (workoutForm) {
-    workoutForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const ex = document.getElementById('ex').value;
-        const w = document.getElementById('w').value;
-        const r = document.getElementById('r').value;
+document.getElementById('workout-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const exercise = document.getElementById('ex').value;
+    const weight = document.getElementById('w').value;
+    const reps = document.getElementById('r').value;
 
-        const { error } = await _sb.from('workouts').insert([{ 
-            exercise: ex, 
-            weight: parseFloat(w), 
-            reps: parseInt(r) 
-        }]);
+    const { error } = await _sb.from('workouts').insert([{ 
+        exercise, 
+        weight: parseFloat(weight), 
+        reps: parseInt(reps) 
+    }]);
 
-        if (error) {
-            alert("Chyba při ukládání: " + error.message);
-        } else {
-            workoutForm.reset();
-            loadData();
-        }
-    });
-}
+    if (error) {
+        alert("Chyba při ukládání: " + error.message);
+    } else {
+        document.getElementById('workout-form').reset();
+        loadData();
+    }
+});

@@ -3,146 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fitness App - Tvůj Deník</title>
+    <title>Fitness App - Funkční verze</title>
     <style>
-        :root {
-            --bg-color: #f4f4f9;
-            --card-bg: #ffffff;
-            --text-color: #2d3436;
-            --accent-color: #000000;
-            --border-style: 2px solid #000000;
-        }
-
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { background: var(--card-bg); padding: 30px; border: var(--border-style); box-shadow: 8px 8px 0px #000; width: 100%; max-width: 400px; margin: 20px; }
+        :root { --bg-color: #f4f4f9; --card-bg: #ffffff; --border-style: 2px solid #000; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: var(--card-bg); padding: 30px; border: var(--border-style); box-shadow: 8px 8px 0px #000; width: 100%; max-width: 350px; }
         
-        h1 { margin: 0 0 10px 0; font-size: 22px; text-transform: uppercase; }
+        /* DŮLEŽITÉ: hidden třída musí být definována takto */
         .hidden { display: none !important; }
-
-        input { width: 100%; padding: 10px; border: var(--border-style); box-sizing: border-box; outline: none; margin-bottom: 15px; }
-        button { width: 100%; padding: 12px; background: var(--accent-color); color: white; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        button:disabled { background: #ccc; }
-
-        .auth-footer { margin-top: 20px; text-align: center; font-size: 14px; }
-        .toggle-link { text-decoration: underline; cursor: pointer; font-weight: bold; color: #0984e3; }
-
-        /* Styl pro záznamy tréninku */
-        .workout-item { border-bottom: 1px dashed #000; padding: 10px 0; display: flex; justify-content: space-between; }
+        
+        input { width: 100%; padding: 10px; border: var(--border-style); box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
+        button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        button:disabled { background: #888; }
+        .auth-footer { margin-top: 15px; text-align: center; font-size: 13px; }
+        
+        /* Styl pro klikací odkaz */
+        .toggle-link { text-decoration: underline; cursor: pointer; font-weight: bold; color: blue; padding: 5px; }
+        
+        .workout-list { margin-top: 20px; border-top: 2px dashed #ccc; padding-top: 10px; }
+        .workout-item { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
     <div id="auth-section" class="container">
-        <h1 id="auth-title">Vítej zpět</h1>
-        <p id="auth-subtitle">Zadej údaje pro vstup do deníku</p>
-
+        <h1 id="auth-title">Přihlášení</h1>
         <form id="auth-form">
-            <input type="email" id="email" required placeholder="Email">
-            <input type="password" id="password" required placeholder="Heslo">
-            <button type="submit" id="auth-btn">Přihlásit se</button>
+            <input type="email" id="email" placeholder="Tvůj Email" required>
+            <input type="password" id="password" placeholder="Heslo (min. 6 znaků)" required>
+            <button type="submit" id="auth-btn">Vstoupit</button>
         </form>
-
         <div class="auth-footer">
-            <div id="login-text">Nemáš účet? <span class="toggle-link" onclick="toggleAuth()">Zaregistruj se</span></div>
-            <div id="register-text" class="hidden">Už máš účet? <span class="toggle-link" onclick="toggleAuth()">Přihlas se</span></div>
+            <span id="toggle-text">Nemáš účet?</span> 
+            <span class="toggle-link" onclick="toggleAuth()">Zaregistruj se</span>
         </div>
     </div>
 
     <div id="app-section" class="container hidden">
         <h1>Můj Trénink 💪</h1>
-        <p id="user-email" style="font-size: 12px; color: gray;"></p>
+        <p id="user-info" style="font-size: 11px; color: gray;"></p>
         
         <form id="workout-form">
-            <input type="text" id="exercise" placeholder="Cvik (např. Dřep)" required>
-            <div style="display: flex; gap: 10px;">
-                <input type="number" id="weight" placeholder="Váha (kg)" required>
+            <input type="text" id="exercise" placeholder="Cvik" required>
+            <div style="display: flex; gap: 5px;">
+                <input type="number" id="weight" placeholder="Kg" required>
                 <input type="number" id="reps" placeholder="Opakování" required>
             </div>
-            <button type="submit">Uložit cvik</button>
+            <button type="submit">Uložit do deníku</button>
         </form>
 
-        <div id="workout-list" style="margin-top: 20px;">
-            <h3>Dnešní záznamy:</h3>
+        <div id="workout-list" class="workout-list">
             </div>
 
-        <button onclick="handleLogout()" style="margin-top: 30px; background: #ff4757;">Odhlásit se</button>
+        <button onclick="logout()" style="margin-top: 20px; background: #ff4757;">Odhlásit se</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // TVOJE KONFIGURACE
         const SUPABASE_URL = "https://oesygfqnrykzkmxuggxr.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lc3lnZnFucnlremtteHVnZ3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTI4NDMsImV4cCI6MjA4ODk2ODg0M30.VCzB_jf3aeP89wQhwIXxROxF8cVzlNWtNPO8nI0im6M";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Inicializace Supabase
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let isLoginMode = true;
 
-        // PŘEPÍNÁNÍ LOGIN / REGISTRACE
+        // Kontrola přihlášení po načtení stránky
+        window.addEventListener('load', async () => {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                showApp(session.user);
+            }
+        });
+
+        // Přepínání mezi Loginem a Registrací
         function toggleAuth() {
             isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerText = isLoginMode ? "Vítej zpět" : "Nový účet";
-            document.getElementById('auth-btn').innerText = isLoginMode ? "Přihlásit se" : "Vytvořit účet";
-            document.getElementById('login-text').classList.toggle('hidden');
-            document.getElementById('register-text').classList.toggle('hidden');
+            const title = document.getElementById('auth-title');
+            const btn = document.getElementById('auth-btn');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleLink = document.querySelector('.toggle-link');
+
+            if (isLoginMode) {
+                title.innerText = "Přihlášení";
+                btn.innerText = "Vstoupit";
+                toggleText.innerText = "Nemáš účet?";
+                toggleLink.innerText = "Zaregistruj se";
+            } else {
+                title.innerText = "Registrace";
+                btn.innerText = "Vytvořit účet";
+                toggleText.innerText = "Už máš účet?";
+                toggleLink.innerText = "Přihlas se";
+            }
         }
 
-        // AUTENTIZACE
+        // Logika odesílání formuláře (Auth)
         document.getElementById('auth-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            
-            let result;
-            if (isLoginMode) {
-                result = await supabaseClient.auth.signInWithPassword({ email, password });
-            } else {
-                result = await supabaseClient.auth.signUp({ email, password });
-                if (!result.error) alert("Registrace úspěšná! Potvrď email.");
-            }
+            const btn = document.getElementById('auth-btn');
 
-            if (result.error) alert(result.error.message);
-            else if (isLoginMode) showApp(result.data.user);
+            btn.disabled = true;
+            btn.innerText = "Pracuji...";
+
+            if (isLoginMode) {
+                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                if (error) alert("Chyba při přihlášení: " + error.message);
+                else showApp(data.user);
+            } else {
+                const { data, error } = await _supabase.auth.signUp({ email, password });
+                if (error) alert("Chyba při registraci: " + error.message);
+                else alert("Registrace úspěšná! Nyní se můžeš přihlásit (pokud jsi vypnul potvrzovací e-mail v Supabase).");
+            }
+            btn.disabled = false;
+            btn.innerText = isLoginMode ? "Vstoupit" : "Vytvořit účet";
         });
 
-        // ZOBRAZENÍ APP
+        // Přepnutí na hlavní obrazovku aplikace
         function showApp(user) {
             document.getElementById('auth-section').classList.add('hidden');
             document.getElementById('app-section').classList.remove('hidden');
-            document.getElementById('user-email').innerText = user.email;
+            document.getElementById('user-info').innerText = "Přihlášen: " + user.email;
             loadWorkouts();
         }
 
-        // NAČTENÍ TRÉNINKŮ
+        // Načtení cviků z databáze
         async function loadWorkouts() {
-            const { data, error } = await supabaseClient.from('workouts').select('*').order('created_at', { ascending: false });
+            const { data, error } = await _supabase.from('workouts').select('*').order('created_at', { ascending: false });
             const list = document.getElementById('workout-list');
-            list.innerHTML = '<h3>Dnešní záznamy:</h3>';
-            if (data) {
+            list.innerHTML = '<strong>Poslední cviky:</strong>';
+            
+            if (data && data.length > 0) {
                 data.forEach(item => {
-                    list.innerHTML += `<div class="workout-item"><span>${item.exercise}</span> <b>${item.weight}kg x ${item.reps}</b></div>`;
+                    list.innerHTML += `
+                        <div class="workout-item">
+                            <span>${item.exercise}</span> 
+                            <span>${item.weight}kg x ${item.reps}</span>
+                        </div>`;
                 });
+            } else {
+                list.innerHTML += '<p style="font-size:12px; color: gray;">Zatím žádné záznamy.</p>';
             }
         }
 
-        // ULOŽENÍ TRÉNINKU
+        // Uložení nového cviku
         document.getElementById('workout-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const exercise = document.getElementById('exercise').value;
             const weight = document.getElementById('weight').value;
             const reps = document.getElementById('reps').value;
 
-            const { error } = await supabaseClient.from('workouts').insert([{ exercise, weight, reps }]);
+            const { error } = await _supabase.from('workouts').insert([
+                { exercise: exercise, weight: parseFloat(weight), reps: parseInt(reps) }
+            ]);
             
-            if (error) alert(error.message);
-            else {
+            if (error) {
+                alert("Chyba při ukládání: " + error.message);
+            } else {
                 document.getElementById('workout-form').reset();
                 loadWorkouts();
             }
         });
 
-        // ODHLÁŠENÍ
-        async function handleLogout() {
-            await supabaseClient.auth.signOut();
+        // Odhlášení
+        async function logout() {
+            await _supabase.auth.signOut();
             location.reload();
         }
     </script>

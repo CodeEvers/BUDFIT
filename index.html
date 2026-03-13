@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fitness App - Funkční Verze</title>
+    <title>Fitness App</title>
     <style>
         :root { --bg-color: #f4f4f9; --card-bg: #ffffff; --border: 2px solid #000; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
@@ -15,7 +15,7 @@
         input { width: 100%; padding: 12px; border: var(--border); box-sizing: border-box; margin-bottom: 15px; outline: none; }
         button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
         .auth-footer { margin-top: 20px; text-align: center; font-size: 14px; }
-        .toggle-link { text-decoration: underline; cursor: pointer; font-weight: bold; color: #0000ff; padding: 5px; }
+        .toggle-link { text-decoration: underline; cursor: pointer; font-weight: bold; color: #0000ff; }
         .workout-item { padding: 10px; border-bottom: 1px dashed #000; display: flex; justify-content: space-between; }
     </style>
 </head>
@@ -24,7 +24,6 @@
     <div id="auth-section" class="container">
         <h1 id="main-title">Vítej zpět</h1>
         <p id="main-subtitle">Zadej své údaje pro přístup k deníku</p>
-
         <form id="auth-form">
             <label>Email</label>
             <input type="email" id="email" placeholder="email@seznam.cz" required>
@@ -32,7 +31,6 @@
             <input type="password" id="password" placeholder="••••••••" required>
             <button type="submit" id="submit-btn">Přihlásit se</button>
         </form>
-
         <div class="auth-footer">
             <span id="footer-text">Nemáš účet?</span> 
             <span class="toggle-link" id="switch-link">Zaregistruj se</span>
@@ -42,129 +40,16 @@
     <div id="app-section" class="container hidden">
         <h1>Můj Trénink 💪</h1>
         <form id="workout-form">
-            <label>Cvik</label>
-            <input type="text" id="ex" placeholder="Např. Dřep" required>
-            <label>Váha (kg)</label>
-            <input type="number" id="w" placeholder="0" required>
-            <label>Opakování</label>
-            <input type="number" id="r" placeholder="0" required>
-            <button type="submit">Uložit do deníku</button>
+            <input type="text" id="ex" placeholder="Cvik" required>
+            <input type="number" id="w" placeholder="Kg" required>
+            <input type="number" id="r" placeholder="Reps" required>
+            <button type="submit">Uložit</button>
         </form>
-        <div id="list" style="margin-top:20px">
-            </div>
-        <button onclick="location.reload()" style="margin-top:20px; background:red">Odhlásit se</button>
+        <div id="list" style="margin-top:20px"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <script>
-        // Nastavení tvého Supabase
-        const SUPABASE_URL = "https://oesygfqnrykzkmxuggxr.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lc3lnZnFucnlremtteHVnZ3hyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTI4NDMsImV4cCI6MjA4ODk2ODg0M30.VCzB_jf3aeP89wQhwIXxROxF8cVzlNWtNPO8nI0im6M";
-        const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        let isLogin = true;
-
-        // PŘEPÍNÁNÍ MEZI LOGINEM A REGISTRACÍ
-        document.getElementById('switch-link').addEventListener('click', () => {
-            isLogin = !isLogin;
-            const title = document.getElementById('main-title');
-            const sub = document.getElementById('main-subtitle');
-            const btn = document.getElementById('submit-btn');
-            const fText = document.getElementById('footer-text');
-            const fLink = document.getElementById('switch-link');
-
-            if (isLogin) {
-                title.innerText = "Vítej zpět";
-                sub.innerText = "Zadej své údaje pro přístup k deníku";
-                btn.innerText = "Přihlásit se";
-                fText.innerText = "Nemáš účet?";
-                fLink.innerText = "Zaregistruj se";
-            } else {
-                title.innerText = "Nový účet";
-                sub.innerText = "Začni svou cestu za lepším já";
-                btn.innerText = "Vytvořit účet";
-                fText.innerText = "Už máš účet?";
-                fLink.innerText = "Přihlas se";
-            }
-        });
-
-        // LOGIKA PŘIHLÁŠENÍ / REGISTRACE
-        document.getElementById('auth-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const submitBtn = document.getElementById('submit-btn');
-            
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Pracuji...";
-
-            if (isLogin) {
-                const { data, error } = await _sb.auth.signInWithPassword({ email, password });
-                if (error) {
-                    alert("Chyba: " + error.message);
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "Přihlásit se";
-                } else {
-                    showApp();
-                }
-            } else {
-                const { error } = await _sb.auth.signUp({ email, password });
-                if (error) {
-                    alert("Chyba: " + error.message);
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "Vytvořit účet";
-                } else {
-                    alert("Registrace proběhla! Pokud jsi v Supabase vypnul potvrzování e-mailů, můžeš se hned přihlásit.");
-                    isLogin = true;
-                    document.getElementById('switch-link').click(); // Přepne zpět na login
-                    submitBtn.disabled = false;
-                }
-            }
-        });
-
-        // ZOBRAZENÍ SAMOTNÉ APLIKACE
-        async function showApp() {
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('app-section').classList.remove('hidden');
-            loadData();
-        }
-
-        // NAČTENÍ DAT Z TABULKY WORKOUTS
-        async function loadData() {
-            const { data, error } = await _sb.from('workouts').select('*').order('created_at', {ascending: false});
-            const list = document.getElementById('list');
-            list.innerHTML = '<strong>Poslední záznamy:</strong>';
-            
-            if (data && data.length > 0) {
-                data.forEach(i => {
-                    list.innerHTML += `<div class="workout-item"><b>${i.exercise}</b> <span>${i.weight}kg x ${i.reps}</span></div>`;
-                });
-            } else {
-                list.innerHTML += '<p style="font-size: 12px; color: gray;">Zatím žádné tréninky.</p>';
-            }
-        }
-
-        // ULOŽENÍ NOVÉHO CVIKU
-        document.getElementById('workout-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const ex = document.getElementById('ex').value;
-            const w = document.getElementById('w').value;
-            const r = document.getElementById('r').value;
-
-            const { error } = await _sb.from('workouts').insert([{ 
-                exercise: ex, 
-                weight: parseFloat(w), 
-                reps: parseInt(r) 
-            }]);
-
-            if (error) {
-                alert("Chyba při ukládání: " + error.message);
-            } else {
-                document.getElementById('workout-form').reset();
-                loadData();
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>

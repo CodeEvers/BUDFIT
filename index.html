@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fitness App</title>
+    <title>Fitness App - BudFit</title>
     <style>
         :root { --bg-color: #f4f4f9; --card-bg: #ffffff; --border: 2px solid #000; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
@@ -15,8 +15,8 @@
         input { width: 100%; padding: 12px; border: var(--border); box-sizing: border-box; margin-bottom: 15px; outline: none; }
         button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
         .auth-footer { margin-top: 20px; text-align: center; font-size: 14px; }
-        .toggle-link { text-decoration: underline; cursor: pointer; font-weight: bold; color: #0000ff; }
-        .workout-item { padding: 10px; border-bottom: 1px dashed #000; display: flex; justify-content: space-between; }
+        .toggle-link { text-decoration: underline; cursor: pointer; font-weight: bold; color: #0000ff; padding: 5px; }
+        .workout-item { padding: 10px; border-bottom: 1px dashed #000; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
@@ -24,6 +24,7 @@
     <div id="auth-section" class="container">
         <h1 id="main-title">Vítej zpět</h1>
         <p id="main-subtitle">Zadej své údaje pro přístup k deníku</p>
+
         <form id="auth-form">
             <label>Email</label>
             <input type="email" id="email" placeholder="email@seznam.cz" required>
@@ -31,6 +32,7 @@
             <input type="password" id="password" placeholder="••••••••" required>
             <button type="submit" id="submit-btn">Přihlásit se</button>
         </form>
+
         <div class="auth-footer">
             <span id="footer-text">Nemáš účet?</span> 
             <span class="toggle-link" id="switch-link">Zaregistruj se</span>
@@ -40,16 +42,20 @@
     <div id="app-section" class="container hidden">
         <h1>Můj Trénink 💪</h1>
         <form id="workout-form">
-            <input type="text" id="ex" placeholder="Cvik" required>
-            <input type="number" id="w" placeholder="Kg" required>
-            <input type="number" id="r" placeholder="Reps" required>
-            <button type="submit">Uložit</button>
+            <label>Cvik</label>
+            <input type="text" id="ex" placeholder="Např. Benchpress" required>
+            <label>Váha (kg)</label>
+            <input type="number" step="0.1" id="w" placeholder="0" required>
+            <label>Opakování</label>
+            <input type="number" id="r" placeholder="0" required>
+            <button type="submit">Uložit cvik</button>
         </form>
-        <div id="list" style="margin-top:20px"></div>
+        <div id="list" style="margin-top:20px; max-height: 200px; overflow-y: auto;">
+            </div>
+        <button onclick="location.reload()" style="margin-top:20px; background: #ff4757;">Odhlásit se</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script src="script.js"></script>
 </body>
 </html>
